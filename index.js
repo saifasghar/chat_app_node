@@ -1,24 +1,39 @@
+// REQUIRED PACKAGES
 require('dotenv').config();
-const express = require("express");
-const bodyParser = require('body-parser');
 require('./connections/db');
+const express = require("express"),
+    bodyParser = require('body-parser');
+
+
+// EXPRESS FRAMEWORK SETUP
 const app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
     extended: true
 }));
 
-let apiRouter = require('./routes/api')(express.Router());
+
+// NODE JS ROUTING
+let apiRouter = require('./routes/api')(express.Router()),
+    authRouter = require('./routes/auth')(express.Router());
 
 
-
+// PERMISSION HEADERS
 app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type,authorization,type');
     next();
 });
 
+
+// PORT
 app.listen(3000, function () {
     console.log("Server is runing on port 3000");
 })
 
+
+// NODE JS ROUTING
+app.use('/api/v1/auth/', authRouter);
 app.use('/api/v1/', apiRouter);
