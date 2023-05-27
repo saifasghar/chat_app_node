@@ -1,8 +1,7 @@
-let productsController = new (require('../controllers/productsController'))();
+let apiInterceptor = new (require('../middlewares/apiInterceptorMiddleware'))();
+
 
 module.exports = (router) => {
-
-    router.get('/home', productsController.fetchAll)
 
     return router
 }

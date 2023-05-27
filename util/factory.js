@@ -1,8 +1,8 @@
-let Product = require('../models/products');
-let User = require('../models/user');
+let User = require('../models/user'),
+    Helpers = new (require('./helpers'))();
 
 
 module.exports = {
-    product: Product,
-    user: User
+    user: User,
+    helpers: Helpers
 }
