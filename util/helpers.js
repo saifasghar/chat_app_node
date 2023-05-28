@@ -1,6 +1,8 @@
 let { v4: uuidv4 } = require('uuid'),
     bcrypt = require('bcrypt'),
-    nodemailer = require('nodemailer');
+    nodemailer = require('nodemailer'),
+    jwt = require('jsonwebtoken');
+
 
 module.exports = class Helpers {
     generatUniqueId() {
@@ -27,7 +29,7 @@ module.exports = class Helpers {
         }
     }
 
-    sendVerificationEmail(toEmail, verificationToken) {
+    sendVerificationEmail(toEmail, htmlTemplate) {
         const transporter = nodemailer.createTransport({
             service: 'Gmail',
             auth: {
@@ -39,7 +41,7 @@ module.exports = class Helpers {
             from: process.env.MY_EMAIL,
             to: toEmail,
             subject: 'Account Verification',
-            html: `Please click on the following link to verify your account: http://your-website.com/verify?token=${verificationToken}`,
+            html: htmlTemplate,
         };
 
         transporter.sendMail(mailOptions, (error, info) => {
@@ -48,6 +50,18 @@ module.exports = class Helpers {
             } else {
                 console.log('Email sent:', info.response);
             }
+        });
+    }
+
+    async generateJwtToken(payload) {
+        return new Promise((resolve, reject) => {
+            jwt.sign(payload, process.env.JWT_SECRET_KEY, {}, (err, token) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(token);
+                }
+            });
         });
     }
 }
