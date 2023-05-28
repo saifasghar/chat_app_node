@@ -16,7 +16,7 @@ module.exports = class Helpers {
             const hash = await bcrypt.hash(plainPassword, 10);
             return hash;
         } catch (error) {
-            throw new Error('Failed to hash password:', error);
+            console.log('Failed to hash password:', error);
         }
     }
 
@@ -25,7 +25,7 @@ module.exports = class Helpers {
             const result = await bcrypt.compare(enteredPassword, hashedPassword);
             return result;
         } catch (error) {
-            throw new Error('Failed to compare passwords:', error);
+            console.log('Failed to compare passwords:', error);
         }
     }
 
@@ -63,5 +63,15 @@ module.exports = class Helpers {
                 }
             });
         });
+    }
+
+    async verifyToken(token) {
+        try {
+            const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+            return decoded;
+        } catch (error) {
+            // Handle verification errors, such as an invalid token or token expiration
+            return false;
+        }
     }
 }

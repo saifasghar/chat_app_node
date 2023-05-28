@@ -136,7 +136,7 @@ module.exports = class AuthController {
 
     }
 
-    verifyAccount(req, res) {
+    verifyAccount(req, res, next) {
         factory.user.findOneAndUpdate({ verificationToken: req.body.token }, { isAccountVerified: true }, { new: true })
             .then((updatedUser) => {
                 if (updatedUser) {
@@ -161,6 +161,60 @@ module.exports = class AuthController {
                 res.json(res.template);
             });
 
+    }
+
+    async verifyTokenAuthenticity(req, res, next) {
+        let token = req.headers.authorization;
+        if (token) {
+            token = token.replace(/bearer /ig, "");
+            if (token) {
+                const decodedToken = await factory.helpers.verifyToken(token);
+                if (decodedToken) {
+                    factory.user.findOne({ email: decodedToken.userEmail }).then(user => {
+                        if (user) {
+                            res.template.message = 'Token in valid. Authentication was successful.';
+                            res.json(res.template);
+                        } else {
+                            res.status(200);
+                            res.send({
+                                data: null,
+                                success: false,
+                                message: 'Invalid Token',
+                                status: 200
+                            });
+                        }
+                    }).catch(error => {
+                        if (error) {
+                            console.log(error);
+                        }
+                    })
+                } else {
+                    res.status(200);
+                    res.send({
+                        data: null,
+                        success: false,
+                        message: 'Invalid Token',
+                        status: 200
+                    });
+                }
+            } else {
+                res.status(200);
+                res.send({
+                    data: null,
+                    success: false,
+                    message: 'Invalid Token',
+                    status: 200
+                });
+            }
+        } else {
+            res.status(200);
+            res.send({
+                data: null,
+                success: false,
+                message: 'Invalid Token',
+                status: 200
+            });
+        }
     }
 
 }

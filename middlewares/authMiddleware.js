@@ -1,7 +1,7 @@
 // let validator = require('../util/validator');
 let validator = new (require('../util/validator'))();
 
-module.exports = class ApiInterceptorMiddleware {
+module.exports = class AuthMiddleware {
 
 
     canSignup = (req, res, next) => {

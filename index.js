@@ -13,9 +13,13 @@ app.use(bodyParser.urlencoded({
 }));
 
 
-// NODE JS ROUTING
+// IMPORT ROUTERS
 let apiRouter = require('./routes/api')(express.Router()),
     authRouter = require('./routes/auth')(express.Router());
+
+
+// IMPORT MIDDLEWARES
+let tokenMiddleWare = new (require('./middlewares/tokenMiddleware'));
 
 
 // PERMISSION HEADERS
@@ -25,6 +29,13 @@ app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Credentials', true);
     res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type,authorization,type');
     next();
+});
+app.options('*', (req, res) => {
+    res.setHeader('Access-Control-Allow-Origin', 'http://localhost:4200');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+    res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type');
+    // Send a 200 OK response to the preflight request
+    res.sendStatus(200);
 });
 
 
@@ -36,4 +47,6 @@ app.listen(3000, function () {
 
 // NODE JS ROUTING
 app.use('/api/v1/auth/', authRouter);
-app.use('/api/v1/', apiRouter);
+app.use('/api/v1/', tokenMiddleWare.isValid, apiRouter);
+
+
