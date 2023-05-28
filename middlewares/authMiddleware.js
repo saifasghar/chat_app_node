@@ -2,8 +2,9 @@
 let validator = new (require('../util/validator'))();
 
 module.exports = class ApiInterceptorMiddleware {
+
+
     canSignup = (req, res, next) => {
-        // console.log(req.body)
         let validationObj = {
             name: {
                 isNotEmpty: true,
@@ -47,25 +48,49 @@ module.exports = class ApiInterceptorMiddleware {
             if (!validationObj.password.isMinLength && validationObj.password.isNotEmpty) {
                 message.push('Password must be atleast 8 characters long');
             }
-            return res.send({
-                success: false,
-                message,
-                status: 400,
-                data: {}
-            });
+            res.template.data = {};
+            res.template.message = message;
+            res.template.success = false;
+            res.template.status = 200;
+            res.status(200);
+            res.json(res.template);
         }
     }
 
     canLogin = (req, res, next) => {
-        // Modify the response object to set a default template
-        res.template = {
-            status: 200,
-            success: true,
-            message: '',
-            data: null
+        let validationObj = {
+            email: {
+                isNotEmpty: true,
+                isValid: true
+            },
+            password: {
+                isNotEmpty: true
+            }
         };
 
-        // Call the next middleware function
-        next();
+        validationObj['email']['isNotEmpty'] = req.body.email.trim().length > 0;
+        validationObj['email']['isValid'] = req.body.email.includes('@') && req.body.email.includes('.');
+        validationObj['password']['isNotEmpty'] = req.body.password.trim().length > 0;
+        if (validator.isValid(validationObj)) {
+            // Call the next middleware function
+            next();
+        } else {
+            let message = [];
+            if (!validationObj.email.isNotEmpty && !validationObj.email.isValid) {
+                message.push('Email is required');
+            }
+            if (validationObj.email.isNotEmpty && !validationObj.email.isValid) {
+                message.push('Email is not valid');
+            }
+            if (!validationObj.password.isNotEmpty && !validationObj.password.isMinLength) {
+                message.push('Password is required');
+            }
+            res.template.data = {};
+            res.template.message = message;
+            res.template.success = false;
+            res.template.status = 200;
+            res.status(200);
+            res.json(res.template);
+        }
     }
 }

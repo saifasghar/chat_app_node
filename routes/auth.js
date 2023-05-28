@@ -5,8 +5,9 @@ let apiInterceptor = new (require('../middlewares/apiInterceptorMiddleware'))(),
 
 module.exports = (router) => {
 
-    router.post('/login', apiInterceptor.setTemplate, authContoller.login)
+    router.post('/login', authMiddleware.canLogin, apiInterceptor.setTemplate, authContoller.login)
     router.post('/signup', authMiddleware.canSignup, apiInterceptor.setTemplate, authContoller.signup)
+    router.post('/verify-account', apiInterceptor.setTemplate, authContoller.verifyAccount)
 
     return router
 }
