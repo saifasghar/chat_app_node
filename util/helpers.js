@@ -29,7 +29,7 @@ module.exports = class Helpers {
         }
     }
 
-    sendVerificationEmail(toEmail, htmlTemplate) {
+    sendEmail(toEmail, htmlTemplate, subject) {
         const transporter = nodemailer.createTransport({
             service: 'Gmail',
             auth: {
@@ -40,7 +40,7 @@ module.exports = class Helpers {
         const mailOptions = {
             from: process.env.MY_EMAIL,
             to: toEmail,
-            subject: 'Account Verification',
+            subject,
             html: htmlTemplate,
         };
 

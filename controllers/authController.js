@@ -217,4 +217,23 @@ module.exports = class AuthController {
         }
     }
 
+    resetPassword(req, res) {
+        factory.user.findOne({ email: req.body.email }).then(user => {
+            if (user) {
+
+
+                res.template.message = 'Reset password email sent successfuly.';
+                res.json(res.template);
+            } else {
+                res.status(200);
+                res.template.message = 'User not found.';
+                res.template.data = {};
+                res.json(res.template);
+            }
+        }).catch(error => {
+            if (error) {
+                console.log(error);
+            }
+        })
+    }
 }

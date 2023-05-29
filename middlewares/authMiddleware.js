@@ -93,4 +93,34 @@ module.exports = class AuthMiddleware {
             res.json(res.template);
         }
     }
+
+    canResetPassword(req, res, next) {
+        let validationObj = {
+            email: {
+                isNotEmpty: true,
+                isValid: true
+            }
+        };
+
+        validationObj['email']['isNotEmpty'] = req.body.email.trim().length > 0;
+        validationObj['email']['isValid'] = req.body.email.includes('@') && req.body.email.includes('.');
+        if (validator.isValid(validationObj)) {
+            // Call the next middleware function
+            next();
+        } else {
+            let message = [];
+            if (!validationObj.email.isNotEmpty && !validationObj.email.isValid) {
+                message.push('Email is required');
+            }
+            if (validationObj.email.isNotEmpty && !validationObj.email.isValid) {
+                message.push('Email is not valid');
+            }
+            res.template.data = {};
+            res.template.message = message;
+            res.template.success = false;
+            res.template.status = 200;
+            res.status(200);
+            res.json(res.template);
+        }
+    }
 }
