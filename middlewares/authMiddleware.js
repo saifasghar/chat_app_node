@@ -94,7 +94,7 @@ module.exports = class AuthMiddleware {
         }
     }
 
-    canResetPassword(req, res, next) {
+    isValidEmail(req, res, next) {
         let validationObj = {
             email: {
                 isNotEmpty: true,
@@ -114,6 +114,36 @@ module.exports = class AuthMiddleware {
             }
             if (validationObj.email.isNotEmpty && !validationObj.email.isValid) {
                 message.push('Email is not valid');
+            }
+            res.template.data = {};
+            res.template.message = message;
+            res.template.success = false;
+            res.template.status = 200;
+            res.status(200);
+            res.json(res.template);
+        }
+    }
+
+    isValidPassword(req, res, next) {
+        let validationObj = {
+            password: {
+                isNotEmpty: true,
+                isMinLength: true
+            }
+        };
+
+        validationObj['password']['isNotEmpty'] = req.body.password.password.trim().length > 0;
+        validationObj['password']['isMinLength'] = req.body.password.password.trim().length > 7;
+        if (validator.isValid(validationObj)) {
+            // Call the next middleware function
+            next();
+        } else {
+            let message = [];
+            if (!validation.password.isNotEmpty && !validation.password.isMinLength) {
+                message.push('Password is required');
+            }
+            if (!validation.password.isMinLength && validation.password.isNotEmpty) {
+                message.push('Password must be atleast 8 characters long.');
             }
             res.template.data = {};
             res.template.message = message;

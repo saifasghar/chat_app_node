@@ -53,7 +53,6 @@ module.exports = class AuthController {
     }
 
     async signup(req, res) {
-
         factory.user.findOne({ email: req.body.email })
             .then(async (user) => {
                 if (user) {
@@ -75,7 +74,7 @@ module.exports = class AuthController {
                     let currYear = new Date().getFullYear();
 
                     // Send verification email to user
-                    factory.helpers.sendVerificationEmail(req.body.email, `<!DOCTYPE html>
+                    factory.helpers.sendEmail(req.body.email, `<!DOCTYPE html>
                     <html lang="en">
                     
                     <head>
@@ -108,7 +107,7 @@ module.exports = class AuthController {
                         </div>
                     </body>
                     
-                    </html>`);
+                    </html>`, 'Account Verification');
 
                     // Save the user to the User collection in MongoDB
                     factory.user.create(newUser)
@@ -118,6 +117,7 @@ module.exports = class AuthController {
                             res.json(res.template);
                         })
                         .catch((error) => {
+                            console.log(error);
                             res.template.message = 'User not created. Due to some error from Database';
                             res.template.success = false;
                             res.template.status = 400;
@@ -127,6 +127,7 @@ module.exports = class AuthController {
                 }
             })
             .catch((error) => {
+                console.log(error);
                 res.template.message = 'User not created. Due to some error from Database';
                 res.template.success = false;
                 res.template.status = 400;
@@ -143,6 +144,21 @@ module.exports = class AuthController {
                     res.template.data = {};
                     res.template.message = 'Account verified successfully';
                     res.json(res.template);
+                    findOneAndUpdate(
+                        { email: updatedUser.email }, // Filter for the document you want to update
+                        { $unset: { verificationToken: 1 } }, // Update operation using $unset to delete the field
+                        { new: true } // Options: return the modified document
+                    )
+                        .then(updatedDocument => {
+                            if (updatedDocument) {
+                                // console.log(updatedDocument);
+                            } else {
+                                // console.log('Document not found.');
+                            }
+                        })
+                        .catch(error => {
+                            // console.log('Error:', error);
+                        });
                 } else {
                     res.template.data = {};
                     res.template.message = 'User not found';
@@ -217,11 +233,49 @@ module.exports = class AuthController {
         }
     }
 
-    resetPassword(req, res) {
+    sendResetPasswordEmail(req, res) {
         factory.user.findOne({ email: req.body.email }).then(user => {
             if (user) {
+                const resetPasswordToken = factory.helpers.generatUniqueId();
 
+                factory.user.findOneAndUpdate(
+                    { email: req.body.email }, // Filter for the document you want to update
+                    { $set: { resetPasswordToken: resetPasswordToken } }, // Update operation using $set to add the new field
+                    { new: true } // Options: return the modified document
+                )
+                // Send verification email to user
+                factory.helpers.sendEmail(req.body.email, `<!DOCTYPE html>
+                    <html lang="en">
 
+                    <head>
+                        <meta charset="UTF-8">
+                        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                        <title>Fiveluman</title>
+                    </head>
+
+                    <body style="background: #F5F6F7; padding: 80px; font-family: 'Heebo', sans-serif; color: #0B2234; font-size: 17px;">
+                        <div style="width: 640px; margin: 0 auto; background: white; padding: 50px 40px;">
+
+                        <p style="margin-bottom: 20px;">Hello ${req.body.name},</p>
+
+                        <p style="margin-bottom: 20px;">
+                            Your Login: ${req.body.email}
+                        </p>
+
+                        <p>Thanks, <br> Chat App Team</p>
+
+                            Please click on the following link to reset your password: http://localhost:4200/auth/reset-password/${resetPasswordToken}
+                            <div style="text-align: center;margin-top: 40px;">
+
+                                <p style="margin-top: 0px; font-size: 14px;">Chat App Copyright ${currYear}© </p>
+
+                            </div>
+
+                        </div>
+                    </body>
+
+                    </html>`, 'Reset Password');
                 res.template.message = 'Reset password email sent successfuly.';
                 res.json(res.template);
             } else {
@@ -235,5 +289,9 @@ module.exports = class AuthController {
                 console.log(error);
             }
         })
+    }
+
+    resetPassword(req, res) {
+
     }
 }
