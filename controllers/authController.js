@@ -174,7 +174,7 @@ module.exports = class AuthController {
                 if (decodedToken) {
                     factory.user.findOne({ email: decodedToken.userEmail }).then(user => {
                         if (user) {
-                            res.template.message = 'Token in valid. Authentication was successful.';
+                            res.template.message = 'Token is valid. Authentication was successful.';
                             res.json(res.template);
                         } else {
                             res.status(200);
