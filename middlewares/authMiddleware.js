@@ -132,10 +132,9 @@ module.exports = class AuthMiddleware {
             }
         };
 
-        validationObj['password']['isNotEmpty'] = req.body.password.password.trim().length > 0;
-        validationObj['password']['isMinLength'] = req.body.password.password.trim().length > 7;
+        validationObj['password']['isNotEmpty'] = req.body.password.trim().length > 0;
+        validationObj['password']['isMinLength'] = req.body.password.trim().length > 7;
         if (validator.isValid(validationObj)) {
-            // Call the next middleware function
             next();
         } else {
             let message = [];
