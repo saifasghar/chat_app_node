@@ -16,6 +16,7 @@ const userSchema = mongoose.Schema({
     },
     isAccountVerified: Boolean,
     verificationToken: String,
+    resetPasswordToken: String
 });
 
 module.exports = mongoose.model('User', userSchema);

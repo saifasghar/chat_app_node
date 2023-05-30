@@ -44,11 +44,7 @@ module.exports = class AuthController {
                 res.json(res.template);
             }
         }).catch(error => {
-            res.template.message = 'Something went wrong. Error with Databse';
-            res.template.success = false;
-            res.template.status = 400;
-            res.status(400);
-            res.json(res.template);
+            console.log(error);
         })
     }
 
@@ -128,11 +124,6 @@ module.exports = class AuthController {
             })
             .catch((error) => {
                 console.log(error);
-                res.template.message = 'User not created. Due to some error from Database';
-                res.template.success = false;
-                res.template.status = 400;
-                res.status(400);
-                res.json(res.template);
             });
 
     }
@@ -145,19 +136,19 @@ module.exports = class AuthController {
                     res.template.message = 'Account verified successfully';
                     res.json(res.template);
                     findOneAndUpdate(
-                        { email: updatedUser.email }, // Filter for the document you want to update
-                        { $unset: { verificationToken: 1 } }, // Update operation using $unset to delete the field
-                        { new: true } // Options: return the modified document
+                        { email: updatedUser.email },
+                        { $unset: { verificationToken: 1 } },
+                        { new: true }
                     )
                         .then(updatedDocument => {
                             if (updatedDocument) {
                                 // console.log(updatedDocument);
                             } else {
-                                // console.log('Document not found.');
+                                console.log('Document not found.');
                             }
                         })
                         .catch(error => {
-                            // console.log('Error:', error);
+                            console.log('Error:', error);
                         });
                 } else {
                     res.template.data = {};
@@ -169,12 +160,7 @@ module.exports = class AuthController {
                 }
             })
             .catch((error) => {
-                res.template.data = {};
-                res.template.message = 'Connection issue with the database';
-                res.template.success = false;
-                res.template.status = 400;
-                res.status(400);
-                res.json(res.template);
+                console.log(error);
             });
 
     }
@@ -236,51 +222,34 @@ module.exports = class AuthController {
     sendResetPasswordEmail(req, res) {
         factory.user.findOne({ email: req.body.email }).then(user => {
             if (user) {
-                const resetPasswordToken = factory.helpers.generatUniqueId();
-
-                factory.user.findOneAndUpdate(
-                    { email: req.body.email }, // Filter for the document you want to update
-                    { $set: { resetPasswordToken: resetPasswordToken } }, // Update operation using $set to add the new field
-                    { new: true } // Options: return the modified document
-                )
-                // Send verification email to user
-                factory.helpers.sendEmail(req.body.email, `<!DOCTYPE html>
-                    <html lang="en">
-
-                    <head>
-                        <meta charset="UTF-8">
-                        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                        <title>Fiveluman</title>
-                    </head>
-
-                    <body style="background: #F5F6F7; padding: 80px; font-family: 'Heebo', sans-serif; color: #0B2234; font-size: 17px;">
-                        <div style="width: 640px; margin: 0 auto; background: white; padding: 50px 40px;">
-
-                        <p style="margin-bottom: 20px;">Hello ${req.body.name},</p>
-
-                        <p style="margin-bottom: 20px;">
-                            Your Login: ${req.body.email}
-                        </p>
-
-                        <p>Thanks, <br> Chat App Team</p>
-
-                            Please click on the following link to reset your password: http://localhost:4200/auth/reset-password/${resetPasswordToken}
-                            <div style="text-align: center;margin-top: 40px;">
-
-                                <p style="margin-top: 0px; font-size: 14px;">Chat App Copyright ${currYear}© </p>
-
-                            </div>
-
-                        </div>
-                    </body>
-
-                    </html>`, 'Reset Password');
-                res.template.message = 'Reset password email sent successfuly.';
-                res.json(res.template);
+                const generatedResetPasswordToken = factory.helpers.generatUniqueId();
+                if (user.resetPasswordToken) {
+                    factory.user.findOneAndUpdate(
+                        { email: req.body.email }, // Filter for the document you want to update
+                        { resetPasswordToken: generatedResetPasswordToken }, // Update operation using $set to add the new field
+                        { new: true }
+                    ).then(updatedUser => {
+                        sendEmailAndResponse(req, res, user, generatedResetPasswordToken);
+                    })
+                        .catch(err => {
+                            console.log(err);
+                        })
+                } else {
+                    factory.user.findOneAndUpdate(
+                        { email: req.body.email }, // Filter for the document you want to update
+                        { $set: { resetPasswordToken: generatedResetPasswordToken } }, // Update operation using $set to add the new field
+                        { new: true } // Options: return the modified document
+                    ).then(updatedUser => {
+                        sendEmailAndResponse(req, res, user, generatedResetPasswordToken);
+                    })
+                        .catch(err => {
+                            console.log(err);
+                        })
+                }
             } else {
                 res.status(200);
                 res.template.message = 'User not found.';
+                res.template.success = false;
                 res.template.data = {};
                 res.json(res.template);
             }
@@ -289,9 +258,82 @@ module.exports = class AuthController {
                 console.log(error);
             }
         })
+
+
+        function sendEmailAndResponse(req, res, user, generatedResetPasswordToken) {
+            let currYear = new Date().getFullYear();
+
+            // Send verification email to user
+            factory.helpers.sendEmail(req.body.email, `<!DOCTYPE html>
+                <html lang="en">
+
+                <head>
+                    <meta charset="UTF-8">
+                    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>Fiveluman</title>
+                </head>
+
+                <body style="background: #F5F6F7; padding: 80px; font-family: 'Heebo', sans-serif; color: #0B2234; font-size: 17px;">
+                    <div style="width: 640px; margin: 0 auto; background: white; padding: 50px 40px;">
+
+                    <p style="margin-bottom: 20px;">Hello ${user.name},</p>
+
+                    <p style="margin-bottom: 20px;">
+                        Your Login: ${req.body.email}
+                    </p>
+
+                    <p>Thanks, <br> Chat App Team</p>
+
+                        Please click on the following link to reset your password: http://localhost:4200/auth/reset-password/${generatedResetPasswordToken}
+                        <div style="text-align: center;margin-top: 40px;">
+
+                            <p style="margin-top: 0px; font-size: 14px;">Chat App Copyright ${currYear}© </p>
+
+                        </div>
+
+                    </div>
+                </body>
+
+                </html>`, 'Reset Password');
+            res.template.message = 'Reset password email sent successfuly.';
+            res.json(res.template);
+        }
     }
 
-    resetPassword(req, res) {
-
+    async resetPassword(req, res) {
+        if (req.body.token) {
+            factory.user.findOneAndUpdate({ resetPasswordToken: req.body.token }, { password: await factory.helpers.encryptPassword(req.body.password) }).then(updatedUser => {
+                if (updatedUser) {
+                    res.template.message = 'Password updated successfully';
+                    res.json(res.template);
+                    factory.user.findOneAndUpdate(
+                        { email: updatedUser.email },
+                        { $unset: { resetPasswordToken: 1 } },
+                        { new: true }
+                    )
+                        .then(updatedDocument => {
+                            if (updatedDocument) {
+                                // console.log(updatedDocument);
+                            } else {
+                                console.log('Document not found.');
+                            }
+                        })
+                        .catch(error => {
+                            console.log('Error:', error);
+                        });
+                } else {
+                    res.template.message = 'Token has expired or is invalid';
+                    res.template.success = false;
+                    res.json(res.template);
+                }
+            }).catch(err => {
+                console.log(err);
+            })
+        } else {
+            res.template.message = 'Reset password token is required.';
+            res.template.success = false;
+            res.json(res.template);
+        }
     }
 }
