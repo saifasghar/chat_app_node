@@ -65,6 +65,7 @@ module.exports = class AuthController {
                         password: await factory.helpers.encryptPassword(req.body.password),
                         isAccountVerified: false,
                         verificationToken,
+                        notifications: []
                     });
 
                     let currYear = new Date().getFullYear();

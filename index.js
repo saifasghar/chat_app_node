@@ -19,7 +19,8 @@ let apiRouter = require('./routes/api')(express.Router()),
 
 
 // IMPORT MIDDLEWARES
-let tokenMiddleWare = new (require('./middlewares/tokenMiddleware'));
+let tokenMiddleWare = new (require('./middlewares/tokenMiddleware')),
+    apiInterceptor = new (require('./middlewares/apiInterceptorMiddleware'))();
 
 
 // PERMISSION HEADERS
@@ -46,7 +47,7 @@ app.listen(3000, function () {
 
 
 // NODE JS ROUTING
-app.use('/api/v1/auth/', authRouter);
-app.use('/api/v1/', tokenMiddleWare.isValid, apiRouter);
+app.use('/api/v1/auth/', apiInterceptor.setTemplate, authRouter);
+app.use('/api/v1/', tokenMiddleWare.isValid, apiInterceptor.setTemplate, apiRouter);
 
 
