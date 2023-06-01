@@ -8,7 +8,7 @@ module.exports = class AuthMiddleware {
         if (token) {
             token = token.replace(/bearer /ig, "");
             if (token) {
-                const decodedToken = await factory.helpers.verifyToken(token);
+                const decodedToken = await factory.helpers.verifyAndDecodeToken(token);
                 if (decodedToken) {
                     factory.user.findOne({ email: decodedToken.userEmail }).then(user => {
                         if (user) {

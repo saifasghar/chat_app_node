@@ -16,7 +16,10 @@ const userSchema = mongoose.Schema({
     },
     isAccountVerified: Boolean,
     verificationToken: String,
-    resetPasswordToken: String
+    resetPasswordToken: String,
+    chats: Array,
+    friends: Array,
+    notifications: Array
 });
 
 module.exports = mongoose.model('User', userSchema);

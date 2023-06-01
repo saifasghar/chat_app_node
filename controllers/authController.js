@@ -64,7 +64,7 @@ module.exports = class AuthController {
                         email: req.body.email,
                         password: await factory.helpers.encryptPassword(req.body.password),
                         isAccountVerified: false,
-                        verificationToken
+                        verificationToken,
                     });
 
                     let currYear = new Date().getFullYear();
@@ -135,7 +135,7 @@ module.exports = class AuthController {
                     res.template.data = {};
                     res.template.message = 'Account verified successfully';
                     res.json(res.template);
-                    findOneAndUpdate(
+                    factory.user.findOneAndUpdate(
                         { email: updatedUser.email },
                         { $unset: { verificationToken: 1 } },
                         { new: true }
@@ -170,7 +170,7 @@ module.exports = class AuthController {
         if (token) {
             token = token.replace(/bearer /ig, "");
             if (token) {
-                const decodedToken = await factory.helpers.verifyToken(token);
+                const decodedToken = await factory.helpers.verifyAndDecodeToken(token);
                 if (decodedToken) {
                     factory.user.findOne({ email: decodedToken.userEmail }).then(user => {
                         if (user) {
