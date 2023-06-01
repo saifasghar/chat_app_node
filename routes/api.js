@@ -5,10 +5,12 @@ let apiInterceptor = new (require('../middlewares/apiInterceptorMiddleware'))(),
 
 module.exports = (router) => {
 
-    router.get('/test', apiInterceptor.setTemplate, userController.test);
-    router.get('/friends/all', apiInterceptor.setTemplate, userController.fetchAllFriends);
-    router.post('/friend/request/new', authMiddleware.isValidEmail, apiInterceptor.setTemplate, userController.sendFriendRequest);
-    router.get('/notifications/all', apiInterceptor.setTemplate, userController.fetchAllNotifications);
+    router.get('/test', userController.test);
+    router.get('/friends/all', userController.fetchAllFriends);
+    router.post('/friend/request/new', authMiddleware.isValidEmail, userController.sendFriendRequest);
+    router.post('/friend/request/confirm', authMiddleware.isValidEmail, userController.acceptFriendRequest);
+    router.get('/notifications/all', userController.fetchAllNotifications);
+    router.post('/notifications/clear/:id', userController.clearNotifications);
 
     return router
 }

@@ -19,7 +19,8 @@ const userSchema = mongoose.Schema({
     resetPasswordToken: String,
     chats: Array,
     friends: Array,
-    notifications: Array
+    notifications: Array,
+    friendRequests: Array
 });
 
 module.exports = mongoose.model('User', userSchema);

@@ -5,7 +5,7 @@ let { v4: uuidv4 } = require('uuid'),
 
 
 module.exports = class Helpers {
-    generatUniqueId() {
+    async generatUniqueId() {
         let uniqueId = uuidv4();
         return uniqueId;
     }
