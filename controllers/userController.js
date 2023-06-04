@@ -4,11 +4,6 @@ module.exports = class UserController {
 
     constructor() { }
 
-    test(req, res, next) {
-        res.template.data = {};
-        res.json(res.template)
-    }
-
     async fetchAllFriends(req, res) {
         let token = req.headers.authorization;
         if (token) {
@@ -157,10 +152,10 @@ module.exports = class UserController {
                         {
                             $pull: {
                                 notifications: {
-                                    id: req.body.notificationId
+                                    id: req.body.id
                                 },
                                 friendRequests: {
-                                    id: req.body.notificationId
+                                    id: req.body.id
                                 }
                             },
                             $push: {
@@ -182,6 +177,37 @@ module.exports = class UserController {
             }).catch(err => {
                 console.log(err);
             })
+    }
+
+    async rejectFriendRequest(req, res) {
+        let token = req.headers.authorization;
+        token = token.replace(/bearer /ig, "");
+        const decodedToken = await factory.helpers.verifyAndDecodeToken(token);
+        factory.user.findOneAndUpdate(
+            { email: decodedToken.userEmail },
+            {
+                $pull: {
+                    notifications: {
+                        id: req.body.id
+                    },
+                    friendRequests: {
+                        id: req.body.id
+                    }
+                }
+            },
+            { new: true }
+        ).then(updatedUser => {
+            if (updatedUser) {
+                res.template.message = 'Friend request rejected successfully.';
+                res.json(res.template);
+            } else {
+                res.template.success = false;
+                res.template.message = 'User not found';
+                res.json(res.template);
+            }
+        }).catch(err => {
+            console.log(err);
+        })
     }
 
     async fetchAllNotifications(req, res) {
@@ -224,5 +250,24 @@ module.exports = class UserController {
         }).catch(err => {
             console.log(err);
         });
+    }
+
+    async fetchAllFriendRequests(req, res) {
+        let token = req.headers.authorization;
+        token = token.replace(/bearer /ig, "");
+        const decodedToken = await factory.helpers.verifyAndDecodeToken(token);
+        factory.user.findOne({ email: decodedToken.userEmail }).then(user => {
+            if (user) {
+                res.template.data = { requests: user.friendRequests || [] };
+                res.template.message = 'Friend Requests found successfully';
+                res.json(res.template);
+            } else {
+                res.template.success = false;
+                res.template.message = 'User not found';
+                res.json(res.template);
+            }
+        }).catch(err => {
+            console.log(err);
+        })
     }
 }
