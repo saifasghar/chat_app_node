@@ -49,6 +49,8 @@ module.exports = class AuthController {
     }
 
     async signup(req, res) {
+        console.log('object');
+        console.log(req.body);
         factory.user.findOne({ email: req.body.email })
             .then(async (user) => {
                 if (user) {
@@ -58,7 +60,7 @@ module.exports = class AuthController {
                     res.status(200);
                     res.json(res.template);
                 } else {
-                    const verificationToken = factory.helpers.generatUniqueId();
+                    const verificationToken = await factory.helpers.generatUniqueId();
                     const newUser = new factory.user({
                         name: req.body.name,
                         email: req.body.email,
