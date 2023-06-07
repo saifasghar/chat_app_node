@@ -5,6 +5,7 @@ const express = require("express");
 const bodyParser = require('body-parser');
 const http = require('http');
 const { Server } = require("socket.io");
+const conn = require('./sockets/conn');
 
 
 // EXPRESS FRAMEWORK SETUP
@@ -13,6 +14,10 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
     extended: true
 }));
+
+
+// Create HTTP server
+const server = http.createServer(app);
 
 
 // IMPORT ROUTERS
@@ -42,32 +47,13 @@ app.options('*', (req, res) => {
 });
 
 
-// Create HTTP server
-const server = http.createServer(app);
+// NODE JS ROUTING
+app.use('/api/v1/auth/', apiInterceptor.setTemplate, authRouter);
+app.use('/api/v1/', tokenMiddleWare.isValid, apiInterceptor.setTemplate, apiRouter);
 
-// Create the Socket.IO server instance
-const io = new Server(server, {
-    cors: {
-        origin: "http://localhost:4200", // Replace with your Angular frontend URL
-        methods: ["GET", "POST"],
-        credentials: true
-    }
-});
 
-// Socket.IO event handling
-io.on('connection', (socket) => {
-    console.log('A user connected.');
-
-    socket.on('chat message', (msg) => {
-        console.log('Received message:', msg);
-        // Broadcast the message to all connected clients
-        io.emit('chat message', msg);
-    });
-
-    socket.on('disconnect', () => {
-        console.log('A user disconnected.');
-    });
-});
+// Create the Socket.IO server instance and pass the server object
+conn(server);
 
 
 // PORT
@@ -77,6 +63,4 @@ server.listen(PORT, function () {
 });
 
 
-// NODE JS ROUTING
-app.use('/api/v1/auth/', apiInterceptor.setTemplate, authRouter);
-app.use('/api/v1/', tokenMiddleWare.isValid, apiInterceptor.setTemplate, apiRouter);
+

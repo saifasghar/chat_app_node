@@ -270,4 +270,27 @@ module.exports = class UserController {
             console.log(err);
         })
     }
+
+    changeStatus(email, status) {
+        let query = {
+            status: {
+                online: status == 'connected',
+            }
+        }
+        if (status == 'disconnected') {
+            query = {
+                status: {
+                    online: status == 'connected',
+                    last_seen: new Date(),
+                }
+            }
+        }
+        factory.user.findOneAndUpdate({ email: email }, query).then(user => {
+            if (!user) {
+                console.log('User not found');
+            }
+        }).catch(err => {
+            console.log(err);
+        })
+    }
 }

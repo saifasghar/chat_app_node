@@ -20,7 +20,8 @@ const userSchema = mongoose.Schema({
     chats: Array,
     friends: Array,
     notifications: Array,
-    friendRequests: Array
+    friendRequests: Array,
+    status: Object
 });
 
 module.exports = mongoose.model('User', userSchema);

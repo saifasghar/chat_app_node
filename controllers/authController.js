@@ -15,6 +15,13 @@ module.exports = class AuthController {
                             res.template.message = 'Successfully logged in.';
                             res.template.data = { jwt_token: token };
                             res.json(res.template);
+                            factory.user.findOneAndUpdate({ email: req.body.email }, { status: { online: true } }).then(user => {
+                                if (!user) {
+                                    console.log('User not found');
+                                }
+                            }).catch(err => {
+                                console.log(err);
+                            })
                         } catch (error) {
                             res.template.message = 'Error generating token';
                             res.template.success = false;
